@@ -1,13 +1,18 @@
 """
 Testing file for calculate.py
 """
-
-from pandas import DataFrame, concat
-from taxcalc.calculate import *
-from taxcalc.puf import *
-from taxcalc.constants import *
-import taxcalc.constants as constants
+# from timer.timer_utils import cumulative_timer
 from timer.timed_calculate import *
+import_timer = cumulative_timer("imports timer")
+
+with import_timer.time():
+    from pandas import DataFrame, concat
+    from taxcalc.calculate import *
+    from taxcalc.puf import *
+    from taxcalc.constants import *
+    import taxcalc.constants as constants
+    from timer.timed_calculate import *
+    #from timer.timer_utils import *
 
 no_csv_timer = cumulative_timer("No CSV Timer")
 
@@ -45,12 +50,13 @@ def run(puf=True):
         calculated = concat([calculated, SSBenefits(calc)], axis=1)
         calculated = concat([calculated, AGI(calc)], axis=1)
         calculated = concat([calculated, ItemDed(puf, calc)], axis=1)
+        calculated = concat([calculated, ItemDed_call(puf, calc)], axis=1)
         df_EI_FICA, _earned = EI_FICA(calc)
         calculated = concat([calculated, df_EI_FICA], axis=1)
         calculated = concat([calculated, StdDed(calc)], axis=1)
         calculated = concat([calculated, XYZD(calc)], axis=1)
         calculated = concat([calculated, NonGain()], axis=1)
-        df_Tax_Gains, c05750 = TaxGains()
+        df_Tax_Gains, c05750 = TaxGains(calc)
         calculated = concat([calculated, df_Tax_Gains], axis=1)
         calculated = concat([calculated, MUI(c05750, calc)], axis=1)
         df_AMTI, c05800 = AMTI(puf, calc)
@@ -78,6 +84,9 @@ def run(puf=True):
 
 if __name__ == '__main__':
     run()
+    run()
+    run()
 
-    print(no_csv_timer)
-    print(main_timer)
+    # print(no_csv_timer)
+    #print(main_timer)
+    print(import_timer)
