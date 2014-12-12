@@ -8,6 +8,9 @@ from numba import *
 from timer import cumulative_timer
 
 DEFAULT_YR = 2013
+tg_apply = cumulative_timer("iter apply")
+tg_apply_inline_re = cumulative_timer("inline apply refactor")
+tg_apply_re = cumulative_timer("iter apply refactor")
 
 class Calculator(object):
 
@@ -209,13 +212,7 @@ with declaration_timer.time():
 
 print (declaration_timer)
 
-# @njit('float64, float64, float64, float64, float64, float64, float64, \
-#       float64,float64, float64, float64,float64, float64, float64, \
-#       int32, float64, int64, float64, float64(\
-#       float64, int64, float64, int64, int64, int64, float64, float64, \
-#       int64, int64, int64, int64, int64, float64, float64, float64, \
-#       float64, int64, int64, int64, float64, float64, float64, float64, \
-#       int64, int64, float64, bool)')
+
 @jit(nopython=True)
 def ItemDed_calc(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900,
                  e20500, e20400, e19200, e20550, e20600, e20950, e19500, e19570,
@@ -1416,77 +1413,72 @@ def TaxGains(p):
     global c05700 # got it
     global c04800, _taxinc, _xyztax, _feitax
 
-    tg_apply = cumulative_timer("iter apply")
-    tg_apply_inline_re = cumulative_timer("inline apply refactor")
-    tg_apply_re = cumulative_timer("iter apply refactor")
-
-    with tg_apply.time():
-        (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
-        c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
-        _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
-        _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
-        _addtax, c24560, _taxspecial, c05100, c05700, c59430,
-        c59450, c59460, _line17, _line19, _line22, _line30, _line31,
-        _line32, _line36, _line33, _line34, _line35, c59485, c59490,
-        c05700, _s1291, _parents, _taxbc, c05750) = \
-        apply_TaxGains0(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
-        p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
-        p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
-        p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
-        p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
-        p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
-        p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
-        p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
-        p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
-        p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
-        p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
-
-    with tg_apply_inline_re.time():
-        (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
-        c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
-        _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
-        _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
-        _addtax, c24560, _taxspecial, c05100, c05700, c59430,
-        c59450, c59460, _line17, _line19, _line22, _line30, _line31,
-        _line32, _line36, _line33, _line34, _line35, c59485, c59490,
-        c05700, _s1291, _parents, _taxbc, c05750) = \
-        apply_TaxGains_inline_refactor0(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
-        p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
-        p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
-        p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
-        p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
-        p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
-        p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
-        p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
-        p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
-        p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
-        p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
-
-    with tg_apply_re.time():
-        (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
-        c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
-        _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
-        _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
-        _addtax, c24560, _taxspecial, c05100, c05700, c59430,
-        c59450, c59460, _line17, _line19, _line22, _line30, _line31,
-        _line32, _line36, _line33, _line34, _line35, c59485, c59490,
-        c05700, _s1291, _parents, _taxbc, c05750) = \
-        apply_TaxGains1(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
-        p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
-        p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
-        p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
-        p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
-        p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
-        p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
-        p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
-        p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
-        p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
-        p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
 
 
-    print tg_apply
-    print tg_apply_inline_re
-    print tg_apply_re
+    # with tg_apply.time():
+    # with tg_apply.time():
+    #     (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
+    #     c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
+    #     _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
+    #     _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
+    #     _addtax, c24560, _taxspecial, c05100, c05700, c59430,
+    #     c59450, c59460, _line17, _line19, _line22, _line30, _line31,
+    #     _line32, _line36, _line33, _line34, _line35, c59485, c59490,
+    #     c05700, _s1291, _parents, _taxbc, c05750) = \
+    #     apply_TaxGains0(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
+    #     p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
+    #     p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
+    #     p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
+    #     p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
+    #     p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
+    #     p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
+    #     p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
+    #     p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
+    #     p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
+    #     p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
+    #
+    # with tg_apply_inline_re.time():
+    #     (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
+    #     c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
+    #     _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
+    #     _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
+    #     _addtax, c24560, _taxspecial, c05100, c05700, c59430,
+    #     c59450, c59460, _line17, _line19, _line22, _line30, _line31,
+    #     _line32, _line36, _line33, _line34, _line35, c59485, c59490,
+    #     c05700, _s1291, _parents, _taxbc, c05750) = \
+    #     apply_TaxGains_inline_refactor0(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
+    #     p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
+    #     p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
+    #     p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
+    #     p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
+    #     p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
+    #     p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
+    #     p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
+    #     p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
+    #     p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
+    #     p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
+
+    # with tg_apply_re.time():
+    (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
+    c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,
+    _dwks17, c24540, c24534, _dwks21, c24597, c24598, _dwks25,
+    _dwks26, _dwks28, c24610, c24615, _dwks31, c24550, c24570,
+    _addtax, c24560, _taxspecial, c05100, c05700, c59430,
+    c59450, c59460, _line17, _line19, _line22, _line30, _line31,
+    _line32, _line36, _line33, _line34, _line35, c59485, c59490,
+    c05700, _s1291, _parents, _taxbc, c05750) = \
+    apply_TaxGains1(p.e00650, c04800, p.e01000, p.c23650, p.e23250, p.e01100, p.e58990,
+    p.e58980, p.e24515, p.e24518, p._brk2, p.FLPDYR, p.DEFAULT_YR, p.MARS, _taxinc, p._brk6,  _xyztax, p._feided, _feitax, p._cmp,
+    p.e59410, p.e59420, p.e59440, p.e59470, p.e59400, p.e83200_0, p.e10105, p.e74400,
+    p.c00650 , p._hasgain, p._dwks5, p.c24505, p.c24510, p._dwks9, p.c24516, p._dwks12,
+    p.c24517 , p.c24520, p.c24530, p._dwks16, p._dwks17, p.c24540, p.c24534,
+    p._dwks21 , p.c24597 , p.c24598, p._dwks25 , p._dwks26 , p._dwks28,
+    p.c24610 , p.c24615 , p._dwks31 , p.c24550 , p.c24570 , p._addtax ,
+    p.c24560 , p._taxspecial , p.c24580 , p.c05100 , p.c05700 , p.c59430 ,
+    p.c59450 , p.c59460 , p._line17, p._line19 , p._line22 , p._line30,
+    p._line31 , p._line32 , p._line36 ,p._line33 , p._line34 , p._line35,
+    p.c59485 , p.c59490, p._s1291, p._parents, p.c05750, p._taxbc)
+
 
     outputs =   (c00650, _hasgain, _dwks5, c24505, c24510, _dwks9, c24516,
                 c24580, c24516, _dwks12, c24517, c24520, c24530, _dwks16,

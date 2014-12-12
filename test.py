@@ -83,10 +83,16 @@ def run(puf=True):
 
 
 if __name__ == '__main__':
-    run()
-    run()
-    run()
+    for i in range(10):
+        run()
+
 
     # print(no_csv_timer)
     #print(main_timer)
     print(import_timer)
+    print(id_vec_timer)
+    print(id_calc_apply_timer)
+    print tg_apply
+    print tg_apply_inline_re
+    print tg_apply_re
+    print TaxGain_timer
