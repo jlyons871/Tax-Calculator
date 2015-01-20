@@ -28,7 +28,7 @@ def run(puf=True):
     to the DataFrame to be printed, one line saves the dataFrame to be printed 
     first, and then saves the variable to be used by a following function second. 
     """
-    tax_dta = pd.read_csv("puf2.csv")
+    tax_dta = pd.read_csv("exall1k.csv")
 
     calc = Calculator(tax_dta)
     set_input_data(calc)
@@ -66,7 +66,7 @@ def run(puf=True):
     calculated = concat([calculated, C1040(puf, calc)], axis=1)
     calculated = concat([calculated, DEITC(calc)], axis=1)
     calculated = concat([calculated, SOIT(calc)], axis=1)
-    to_csv("results.csv", calculated)
+    to_csv("results_new.csv", calculated)
 
 
 if __name__ == '__main__':

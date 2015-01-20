@@ -11,6 +11,7 @@ DEFAULT_YR = 2013
 class Calculator(object):
 
     def __init__(self, data, default_year=2013):
+        data.columns = [x.lower() for x in data.columns.tolist()]
         self.tax_data = data
         self.DEFAULT_YR = default_year
 
