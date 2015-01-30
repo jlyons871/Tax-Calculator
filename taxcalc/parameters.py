@@ -122,7 +122,7 @@ _rtbase = np.array([[0.0765, 0.3400, 0.4000, 0.4500]])
 _rtless = np.array([[0.0765, 0.1598, 0.2106, 0.2106]]) 
 #EIC _phaseout rate
 
-_ssmax = np.array([ 113700,
+_ssmax = np.array([ 115800,
                     117000,
                     118500]) 
 #SS Maximum taxable earnings // UPDATE SAS // (CPI-U)
@@ -166,7 +166,8 @@ _cphase = np.array([75000, 110000, 55000, 75000, 75000, 55000])
 #Child Tax Credit Phase-Out
 
 #                   singl   joint   sep    hh      widow   sep
-_thresx = np.array([200000, 250000, 125000, 200000, 250000, 125000]) 
+#_thresx = np.array([200000, 250000, 125000, 200000, 250000, 125000])
+_thresx = np.array([250000, 300000, 150000, 275000, 300000, 150000])
 #Threshold for add medicare
 
 #                  singl  joint sep hh     widow  sep

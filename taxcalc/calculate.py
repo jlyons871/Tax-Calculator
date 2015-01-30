@@ -295,7 +295,7 @@ def ItemDed_calc(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900
     # Casulty #
     if e20500 > 0:
         c37703 = e20500 + 0.1 * _posagi
-        c20500 = c37703 + 0.1 * _posagi
+        c20500 = c37703 - 0.1 * _posagi
     else:
         c37703 = 0.
         c20500 = 0.
@@ -324,7 +324,15 @@ def ItemDed_calc(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900
     c21060 = (e20900 + c17000 + c18300 + c19200 + c19700
               + c20500 + c20800 + e21000 + e21010)
 
-    _phase2_i = _phase2_arr[FLPDYR-DEFAULT_YR, MARS-1]
+    if FLPDYR < 2013:
+        _phase2_i = _phase2_arr[FLPDYR-DEFAULT_YR, MARS-1]
+    else:
+        if MARS == 1:
+           _phase2_i = 200000
+        elif MARS == 4:
+           _phase2_i = 250000
+        else:
+            _phase2_i = 300000
 
     _nonlimited = c17000 + c20500 + e19570 + e21010 + e20900
     _limitratio = _phase2_i/_sep
@@ -347,7 +355,7 @@ def ItemDed_calc(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900
     # on which if/else branches they follow in the above code. they need to always be the same type
     return (c17750, c17000, _sit1, _sit, _statax, c18300, float(c37703), float(c20500),
             c20750, float(c20400), float(c19200), c20800, c19700, c21060,
-            _phase2_i, _nonlimited, _limitratio, c04470, c21040)
+            float(_phase2_i), _nonlimited, _limitratio, c04470, c21040)
 
 
 @jit(nopython=True)
@@ -452,11 +460,11 @@ def EI_FICA(p):
 
     return DataFrame(data=np.column_stack(outputs), columns=header)
 
-@jit(nopython=True)
+
 def StdDed_calc( DSI, _earned, _stded, FLPDYR, DEFAULT_YR, e04470, 
             MARS, MIdR, e15360, AGEP, AGES, PBI, SBI, _exact, e04200, _aged,
             c04470, c00100, c21060, c21040, e37717, c04600, e04805, t04470,
-            f6251, _feided, c02700, FDED):
+            f6251, _feided, c02700, FDED, e02400, puf):
     # Standard Deduction with Aged, Sched L and Real Estate #
 
     if DSI == 1:
@@ -478,17 +486,48 @@ def StdDed_calc( DSI, _earned, _stded, FLPDYR, DEFAULT_YR, e04470,
 
     c04100 = c04100 + e15360
 
-    _numextra = AGEP + AGES + PBI + SBI
-
-    if MARS == 2 or MARS == 3:
+    if MARS == 2 or MARS == 3: # or MARS == 6:
         _txpyers = 2.
     else:
         _txpyers = 1.
+
+
+    """
+   if fded eq 2 and e04470 gt _stded{FLPDYR,MARS} then do;
+      if MARS ne 2 then
+         _numextra = (e04470 - _stded{FLPDYR,MARS})/_aged{1,FLPDYR};
+      else
+         _numextra = (e04470 - _stded{FLPDYR,MARS})/_aged{2,FLPDYR};
+   end;
+   else if e02400>0 then
+      _numextra = _txpyers;
+   else
+      _numextra = 0;
+    """
+
+    if puf:
+        if FDED == 2 and e04470 > _stded[FLPDYR - DEFAULT_YR, MARS - 1]:
+            if MARS != 2:
+                _numextra = e04470 - (_stded[FLPDYR - DEFAULT_YR, MARS - 1]/float(_aged[FLPDYR - DEFAULT_YR, 1]))
+            else:
+                _numextra = e04470 - (_stded[FLPDYR - DEFAULT_YR, MARS - 1]/float(_aged[FLPDYR - DEFAULT_YR, 2]))
+        elif e02400 > 0:
+            _numextra = float(_txpyers)
+        else:
+            _numextra = 0.
+    else:
+        _numextra = float(AGEP + AGES + PBI + SBI)
 
     if _exact == 1 and MARS == 3 or MARS == 5:
         c04200 = e04200
     else:
         c04200 = _numextra * _aged[FLPDYR - DEFAULT_YR, _txpyers - 1]
+
+    ### FINDME uncomment to debug why _numextra = 0.67
+    # if round(_earned) == 11405:
+    #     print (_numextra, _txpyers, c04200, MARS)
+    #     import pdb; pdb.set_trace()
+
 
     c15200 = c04200
 
@@ -541,14 +580,14 @@ def StdDed_calc( DSI, _earned, _stded, FLPDYR, DEFAULT_YR, e04470,
                   _othded, c04100, c04200, _standard, c04500,
                  c04800, c60000, _amtstd, _taxinc, _feitax, _oldfei)
 
-@jit(nopython=True)
+
 def StdDed_apply(c15100, _numextra, _txpyers, c15200,
                 _othded, c04100, c04200, _standard, c04500,
                  c04800, c60000, _amtstd, _taxinc, _feitax, _oldfei, DSI, 
                  _earned, _stded, FLPDYR, DEFAULT_YR, e04470,  
                  MARS, MIdR, e15360, AGEP, AGES, PBI, SBI, _exact, e04200, 
                  _aged, c04470, c00100, c21060, c21040, e37717, c04600, e04805, 
-                 t04470, f6251, _feided, c02700, FDED):
+                 t04470, f6251, _feided, c02700, FDED, e02400, puf):
     
     for i in range(len(c15100)):
         (c15100[i], _numextra[i], _txpyers[i], c15200[i],
@@ -559,14 +598,14 @@ def StdDed_apply(c15100, _numextra, _txpyers, c15200,
             MARS[i], MIdR[i], e15360[i], AGEP[i], AGES[i], PBI[i], SBI[i], 
             _exact[i], e04200[i], _aged, c04470[i], c00100[i], c21060[i], 
             c21040[i], e37717[i], c04600[i], e04805[i], t04470[i],
-            f6251[i], _feided[i], c02700[i], FDED[i])
+            f6251[i], _feided[i], c02700[i], FDED[i], e02400[i], puf)
 
 
     return (c15100, _numextra, _txpyers, c15200,
             _othded, c04100, c04200, _standard, c04500,
             c04800, c60000, _amtstd, _taxinc, _feitax, _oldfei)
 
-def StdDed(p):
+def StdDed(puf, p):
     # Standard Deduction with Aged, Sched L and Real Estate #
     outputs = \
         (p.c15100, p._numextra, p._txpyers, p.c15200,
@@ -579,7 +618,7 @@ def StdDed(p):
                 p._earned, p._stded, p.FLPDYR, p.DEFAULT_YR, p.e04470,
                 p.MARS, p.MIdR, p.e15360, p.AGEP, p.AGES, p.PBI, p.SBI, p._exact, p.e04200,
                 p._aged, p.c04470, p.c00100, p.c21060, p.c21040, p.e37717, p.c04600, p.e04805,
-                p.t04470, p.f6251, p._feided, p.c02700, p.FDED)
+                p.t04470, p.f6251, p._feided, p.c02700, p.FDED, p.e02400, puf)
 
 
     header = ['c15100', '_numextra', '_txpyers', 'c15200',
@@ -1168,15 +1207,28 @@ def AMTI_calc(  c60000, _exact, e60290, _posagi, e07300, x60260, c24517,
 
     c62600 = max(0., _amtex[FLPDYR - DEFAULT_YR, MARS - 1] - 0.25 * max(0., c62100 - _amtys[FLPDYR - DEFAULT_YR, MARS - 1]))
 
-    if DOBYR > 0:
-        _agep = math.ceil((12 * (FLPDYR - DOBYR) - DOBMD / 100) / 12)
+
+    if DOBYR >= 1 and DOBYR <= 99:
+        _DOBYR = DOBYR + 1900.
     else:
-        _agep = 0.
+        _DOBYR = DOBYR
 
-    if SDOBYR > 0:
-        _ages = np.ceil((12 * (FLPDYR - SDOBYR) - SDOBMD / 100) / 12)
+    if _DOBYR > 1890:
+        _agep = FLPDYR - _DOBYR
+    else:
+        _agep = 50.
 
-    else: _ages = 0.
+
+    if  SDOBYR >= 1 and SDOBYR <= 99:
+        _SDOBYR = SDOBYR + 1900.
+    else:
+        _SDOBYR = 0.
+
+    if _SDOBYR > 1890:
+        _agep = FLPDYR - _SDOBYR
+    else:
+        _ages = 50.
+
 
     if (_cmp == 1 and f6251 == 1 and _exact == 1):
         c62600 = e62600
@@ -1546,8 +1598,8 @@ def ExpEarnedInc_calc(  _exact, c00100, _agcmax, _pcmax, FLPDYR, DEFAULT_YR,
     # amount of the credit
 
     if e07180 == 0:
-
         c07180 = 0.
+        c33000 = 0.  # updated to reflect SAS code, but has no affect?
     else: 
         c07180 = c33400
 
@@ -1583,7 +1635,7 @@ def ExpEarnedInc(p):
                      columns=header)
 
 @jit(nopython=True)
-def RateRed_calc(c05800, _fixup, _othtax, _exact, x59560, _earned):
+def RateRed_calc(c05800, _fixup, _othtax, _exact, x59560, _earned, e59560):
 
     # rate reduction credit for 2001 only, is this needed?
     c05800 = c05800
@@ -1594,19 +1646,20 @@ def RateRed_calc(c05800, _fixup, _othtax, _exact, x59560, _earned):
         c05800 = c05800 + _othtax
 
     if _exact == 1:
-        c59560 = x59560
+        #c59560 = x59560
+        c59560 = e59560
     else:
-        c59560 = _earned 
+        c59560 = _earned
 
     return c07970, c05800, c59560
 
 @jit(nopython=True)
 def RateRed_apply(  c07970, c59560, c05800, _fixup, _othtax, _exact, x59560, 
-                    _earned ):
+                    _earned, e59560):
 
     for i in range(len(c07970)):
         c07970[i], c05800[i], c59560[i] = RateRed_calc(c05800[i], _fixup[i], 
-        _othtax[i], _exact[i], x59560[i], _earned[i])
+        _othtax[i], _exact[i], x59560[i], _earned[i], e59560[i])
  
     return c07970, c05800, c59560
 
@@ -1616,7 +1669,7 @@ def RateRed(p):
         p.c07970, p.c05800, p.c59560 = \
             RateRed_apply(
                 p.c07970, p.c59560, p.c05800, p._fixup, p._othtax,
-                p._exact, p.x59560, p._earned )
+                p._exact, p.x59560, p._earned, p.e59560)
 
     header = ['c07970', 'c05800', 'c59560']
 
@@ -1637,10 +1690,7 @@ def NumDep_calc(EICYB1, EICYB2, EICYB3,
     EICYB2 = max(0.0, EICYB2)
     EICYB3 = max(0.0, EICYB3)
 
-    if puf == True:
-        _ieic = EIC
-    else: 
-        _ieic = int(EICYB1 + EICYB2 + EICYB3)
+    _ieic = int( max(EIC, EICYB1) + EICYB2 + EICYB3)
 
     # Modified AGI only through 2002
 
@@ -1650,8 +1700,9 @@ def NumDep_calc(EICYB1, EICYB2, EICYB3,
     if MARS == 2 and _modagi > 0:
         _val_ymax = (_ymax[_ieic, FLPDYR - DEFAULT_YR] 
                     + _joint[FLPDYR - DEFAULT_YR, _ieic])
-
     else: _val_ymax = int(0.0)
+
+
 
     if (MARS == 1 or MARS == 4 or MARS == 5 or MARS == 7) and _modagi > 0:
         _val_ymax = _ymax[_ieic, FLPDYR - DEFAULT_YR]
@@ -1670,8 +1721,10 @@ def NumDep_calc(EICYB1, EICYB2, EICYB3,
 
     if (MARS != 3 and MARS != 6 and _modagi > 0 and
             (_modagi > _val_ymax or c59560 > _val_ymax)):
-        c59660 = max(0, c59660 - _rtless[FLPDYR - DEFAULT_YR, _ieic]
-                * (max(_modagi, c59560) - _val_ymax))
+        _preeitc = max(0., _crmax[FLPDYR - DEFAULT_YR, _ieic] - _rtless[FLPDYR - DEFAULT_YR, _ieic]
+                       * (max(0.,max(_modagi,c59560)-_val_ymax)))
+        _preeitc = min(_preeitc,c59660)
+
 
     if MARS != 3 and MARS != 6 and _modagi > 0:
         _val_rtbase = _rtbase[FLPDYR - DEFAULT_YR, _ieic] * 100
@@ -1689,14 +1742,13 @@ def NumDep_calc(EICYB1, EICYB2, EICYB3,
 
     if (MARS != 3 and MARS != 6 and _modagi > 0 
             and _dy > _dylim[FLPDYR - DEFAULT_YR]):
-        c59660 = 0.
+        _preeitc = 0.
 
-    if (_cmp == 1 and _ieic == 0 and SOIYR - DOBYR >= 25 and SOIYR - DOBYR < 65
-        and SOIYR - SDOBYR >= 25 and SOIYR - SDOBYR < 65):
-        c59660 = 0.
-    
-    if _ieic == 0 and (_agep < 25 or _agep >=65 or _ages <25 or _ages >= 65):
-        c59660 = 0.
+    if puf or (_ieic > 0) or (_agep >= 25 and _agep <= 64) or (_ages > 0):
+        c59660 = _preeitc
+    else:
+       c59660 = 0.
+       c59560 = 0.  # updated to reflect SAS code, but has no seeming affect on accuracy
 
 
     return (_ieic, EICYB1, EICYB2, EICYB3, _modagi, c59660,
