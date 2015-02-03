@@ -9,9 +9,11 @@ from taxcalc import *
 
 
 all_cols = set()
-tax_dta = pd.read_csv(os.path.join(CUR_PATH, "../../tax_all91_puf.gz"), compression='gzip')
-#Fix-up. MIdR needs to be type int64 to match PUF 
+tax_dta = pd.read_csv(os.path.join(CUR_PATH, "../../tax_all91_puf.gz"),
+                      compression='gzip')
+# Fix-up. MIdR needs to be type int64 to match PUF
 tax_dta['midr'] = tax_dta['midr'].astype('int64')
+
 
 def add_df(alldfs, df):
     for col in df.columns:
@@ -21,42 +23,18 @@ def add_df(alldfs, df):
 
 
 def run(puf=True):
-    calc = Calculator(tax_dta, default_year=91)
-    set_input_data(calc)
-    update_globals_from_calculator(calc)
-    update_calculator_from_module(calc, parameters)
 
-    all_dfs = []
-    add_df(all_dfs, FilingStatus(calc))
-    add_df(all_dfs, Adj(calc))
-    add_df(all_dfs, CapGains(calc))
-    add_df(all_dfs, SSBenefits(calc))
-    add_df(all_dfs, AGI(calc))
-    add_df(all_dfs, ItemDed(puf, calc))
-    add_df(all_dfs, EI_FICA(calc))
-    add_df(all_dfs, StdDed(calc))
-    add_df(all_dfs, XYZD(calc))
-    add_df(all_dfs, NonGain(calc))
-    add_df(all_dfs, TaxGains(calc))
-    add_df(all_dfs, MUI(calc))
-    add_df(all_dfs, AMTI(puf, calc))
-    add_df(all_dfs, F2441(puf, calc))
-    add_df(all_dfs, DepCareBen(calc))
-    add_df(all_dfs, ExpEarnedInc(calc))
-    add_df(all_dfs, RateRed(calc))
-    add_df(all_dfs, NumDep(puf, calc))
-    add_df(all_dfs, ChildTaxCredit(calc))
-    add_df(all_dfs, AmOppCr(calc))
-    add_df(all_dfs, LLC(puf, calc))
-    add_df(all_dfs, RefAmOpp(calc))
-    add_df(all_dfs, NonEdCr(calc))
-    add_df(all_dfs, AddCTC(puf, calc))
-    add_df(all_dfs, F5405())
-    add_df(all_dfs, C1040(puf, calc))
-    add_df(all_dfs, DEITC(calc))
-    add_df(all_dfs, SOIT(calc))
-    totaldf = pd.concat(all_dfs, axis=1)
-    #drop duplicates
+    # Create a Parameters object
+    params = Parameters(start_year=91)
+
+    # Create a Public Use File object
+    puf = PUF(tax_dta)
+
+    # Create a Calculator
+    calc = Calculator(parameters=params, puf=puf)
+    totaldf = calc.calc_all_test()
+
+    # drop duplicates
     totaldf = totaldf.T.groupby(level=0).first().T
 
     exp_results = pd.read_csv(os.path.join(CUR_PATH, "../../exp_results.csv.gz"), compression='gzip')
@@ -79,25 +57,58 @@ def test_sequence():
 
 
 def test_make_Calculator():
-    calc = Calculator(tax_dta)
+    # Create a Parameters object
+    params = Parameters(start_year=91)
+
+    # Create a Public Use File object
+    puf = PUF(tax_dta)
+
+    calc = Calculator(params, puf)
 
 
 def test_make_Calculator_mods():
-    calc1 = calculator(tax_dta)
-    calc2 = calculator(tax_dta, _amex=np.array([4000]))
-    update_calculator_from_module(calc2, parameters)
-    update_globals_from_calculator(calc2)
+
+    # Create a Parameters object
+    params = Parameters(start_year=91)
+
+    # Create a Public Use File object
+    puf = PUF(tax_dta)
+
+    calc2 = calculator(params, puf, _amex=np.array([4000]))
     assert all(calc2._amex == np.array([4000]))
 
 
 def test_make_Calculator_json():
+
+    # Create a Parameters object
+    params = Parameters(start_year=91)
+
+    # Create a Public Use File object
+    puf = PUF(tax_dta)
+
     user_mods = '{ "_aged": [[1500], [1200]] }'
-    calc2 = calculator(tax_dta, mods=user_mods, _amex=np.array([4000]))
-    update_calculator_from_module(calc2, parameters)
-    update_globals_from_calculator(calc2)
+    calc2 = calculator(params, puf, mods=user_mods, _amex=np.array([4000]))
     assert all(calc2._amex == np.array([4000]))
     assert all(calc2._aged == np.array([[1500], [1200]]))
 
+
+def test_Calculator_attr_access_to_params():
+
+    # Create a Parameters object
+    params = Parameters(start_year=91)
+
+    # Create a Public Use File object
+    puf = PUF(tax_dta)
+
+    # Create a Calculator
+    calc = Calculator(parameters=params, puf=puf)
+
+    # PUF data
+    assert hasattr(calc, 'c01000')
+    # Parameter data
+    assert hasattr(calc, '_almdep')
+    # local attribute
+    assert hasattr(calc, 'parameters')
 
 
 class TaxCalcError(Exception):

@@ -8,6 +8,7 @@ raw calculation time can be printed by calling 'print(main_timer)' at the end of
 
 from taxcalc.calculate import *
 from taxcalc.puf import *
+from .timer_utils import cumulative_timer, time_this
 
 from timer_utils import cumulative_timer, time_this
 
