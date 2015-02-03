@@ -15,6 +15,7 @@ def to_csv(fname, df):
     Save this dataframe to a CSV file with name 'fname' and containing
     a header with the column names of the dataframe.
     """
+
     df.to_csv(fname, float_format= '%1.3f', sep=',', header=True, index=False)
 
 
@@ -28,7 +29,7 @@ def run(puf=True):
     to the DataFrame to be printed, one line saves the dataFrame to be printed 
     first, and then saves the variable to be used by a following function second. 
     """
-    tax_dta = pd.read_csv("exall3_1k.csv")
+    tax_dta = pd.read_csv("exall.csv")
 
     calc = Calculator(tax_dta)
     set_input_data(calc)
@@ -66,7 +67,8 @@ def run(puf=True):
     calculated = concat([calculated, C1040(puf, calc)], axis=1)
     calculated = concat([calculated, DEITC(calc)], axis=1)
     calculated = concat([calculated, SOIT(calc)], axis=1)
-    to_csv("results_e3_TC.csv", calculated)
+
+    to_csv("results_exall.csv", calculated)
 
 
 if __name__ == '__main__':

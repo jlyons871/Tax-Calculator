@@ -22,33 +22,37 @@ def set_input_data(calc):
     """
 
     try:
+        ## already set in Aliases section in master
         calc.p04470 = y['p04470']
         calc.p08000 = y['p08000']
         calc.p22250 = y['p22250']
         calc.p23250 = y['p23250']
-        calc.p25350 = y['p25350']
         calc.p25470 = y['p25470']
-        calc.p25700 = y['p25700']
         calc.p60100 = y['p60100']
+        ## need to add to Aliases section in master
+        calc.p25350 = y['p25350']
+        calc.p25700 = y['p25700']
         calc.p61850 = y['p61850']
         calc.p65300 = y['p65300']
         calc.p65400 = y['p65400']
         calc.p27895 = y['p27895']
-        calc.recid = y['recid']
+
     except KeyError:
+        ## already set in Aliases section in master
         calc.p04470 = y['e04470']
         calc.p08000 = y['e08000']
         calc.p22250 = y['e22250']
         calc.p23250 = y['e23250']
-        calc.p25350 = y['e25350']
         calc.p25470 = y['e25470']
-        #calc.p25700 = y['e25700']
         calc.p60100 = y['e60100']
+        ## need to add to Aliases section in master
+        calc.p25350 = y['e25350']
+        calc.p25700 = y['e25700']
         calc.p61850 = y['e61850']
         calc.p65300 = y['e65300']
         calc.p65400 = y['e65400']
-        #calc.p27895 = y['e27895']
-        #calc.recid = y['recid']
+        calc.p27895 = y['e27895']
+
 
     calc.AGIR1 = y['agir1']
     calc.DSI = y['dsi']
