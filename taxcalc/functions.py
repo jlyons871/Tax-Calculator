@@ -479,7 +479,7 @@ def StdDed_calc( DSI, _earned, stded, e04470, e02400, puf,
         _standard = c04100 + c04200
 
     if FDED == 1:
-        _othded = e04470 - c04470
+        _othded = float(e04470 - c04470)
         c04100 = 0.
         c04200 = 0.
         _standard = 0.

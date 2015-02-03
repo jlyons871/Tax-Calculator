@@ -34,7 +34,9 @@ def run(puf=True):
     params = Parameters()
 
     # Create a Public Use File object
-    tax_dta = pd.read_csv("exall.csv")
+    tax_dta = pd.read_csv("puf2.csv")
+
+    tax_dta.columns = [x.lower() for x in tax_dta.columns.tolist()]
     puf = PUF(tax_dta)
 
     # Create a Calculator
@@ -44,7 +46,7 @@ def run(puf=True):
     # drop duplicates
     totaldf = totaldf.T.groupby(level=0).first().T
 
-    to_csv("results_exall.csv", totaldf)
+    to_csv("results_puf.csv", totaldf)
 
 
 
