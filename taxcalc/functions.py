@@ -104,12 +104,12 @@ def AGI(   _ymod1, c02500, c02700, e02615, c02900, e00100, e02500, XTOT,
     
     return (c02650, c00100, _agierr, _posagi, _ywossbe, _ywossbc, _prexmp, c04600)
 
-@iterate_jit(parameters=["puf", "ID_pe","ID_Medical_frt", "ID_Casualty_frt", "ID_Miscellaneous_frt",
+@iterate_jit(parameters=["puf", "ID_ps","ID_Medical_frt", "ID_Casualty_frt", "ID_Miscellaneous_frt",
                          "ID_Charity_crt_Cash","ID_Charity_crt_Asset", "ID_prt", "ID_crt"], nopython=True, puf=True)
 def ItemDed(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900,
                  e20500, e20400, e19200, e20550, e20600, e20950, e19500, e19570,
                  e19400, e19550, e19800, e20100, e20200, e20900, e21000, e21010,
-                 MARS, _sep, c00100, ID_pe,ID_Medical_frt, ID_Casualty_frt, ID_Miscellaneous_frt,
+                 MARS, _sep, c00100, ID_ps,ID_Medical_frt, ID_Casualty_frt, ID_Miscellaneous_frt,
                  ID_Charity_crt_Cash, ID_Charity_crt_Asset, ID_prt, ID_crt, puf):
     """
     WARNING: Any additional keyword args, such as 'puf=True' here, must be passed
@@ -160,7 +160,7 @@ def ItemDed(_posagi, e17500, e18400, e18425, e18450, e18500, e18800, e18900,
     c21060 = (e20900 + c17000 + c18300 + c19200 + c19700
               + c20500 + c20800 + e21000 + e21010)
 
-    _phase2_i = ID_pe[MARS-1]
+    _phase2_i = ID_ps[MARS-1]
 
     _nonlimited = c17000 + c20500 + e19570 + e21010 + e20900
     _limitratio = _phase2_i/_sep
@@ -1206,7 +1206,7 @@ def AddCTC(_nctcr, _precrd, c07220, e00200, e82882, e30100, _sey, _setax,
 
     # Part II of 2005 form 8812
 
-    if _nctcr > 2 and c82890 < c82935:
+    if _nctcr >= ACTC_ChildNum and c82890 < c82935:
         c82900 = 0.0765 * min(SS_Income_c, c82880)
 
 
@@ -1254,7 +1254,7 @@ def AddCTC(_nctcr, _precrd, c07220, e00200, e82882, e30100, _sey, _setax,
         _othadd = 0.
 
 
-    if e82915 > 0 and abs(e82940 - c82940) > 100 and _fixup >= ACTC_ChildNum:
+    if e82915 > 0 and abs(e82940 - c82940) > 100 and _fixup >= 4:
         c11070 = c11070 + _othadd
 
 
