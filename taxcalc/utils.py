@@ -239,7 +239,7 @@ def means_and_comparisons(df, col_name, gp, weighted_total):
 def get_weighted_summation(df):
     sums = defaultdict(lambda: 0)
 
-    for col in [x for x in df.columns.tolist() if x in STATS_COLUMNS[:-1]]:
+    for col in [x for x in df.columns.tolist() if x in STATS_COLUMNS[:-2]]:
         sums[col] = (df[col] * df['s006']).sum()
 
     return pd.Series(sums, name='sums')
