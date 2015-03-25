@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from collections import defaultdict
 from pandas import DataFrame
 
 STATS_COLUMNS = ['c00100', 'c04100', 'c04470', 'c04800', 'c05200',
@@ -179,7 +180,8 @@ def groupby_weighted_decile(df):
     # Groupby weighted deciles
     decile_bins = list(range(1, 11))
     df['wdecs'] = pd.cut(df['cumsum_weights'], bins, labels)
-    return df.groupby('wdecs')
+
+    return df.groupby('wdecs'), add_weighted_summation(df)
 
 
 def groupby_income_bins(df, bins=None, right=True):
@@ -204,7 +206,8 @@ def groupby_income_bins(df, bins=None, right=True):
 
     # Groupby c00100 bins
     df['bins'] = pd.cut(df['c00100'], bins, right=right)
-    return df.groupby('bins')
+
+    return df.groupby('bins'), add_weighted_summation(df)
 
 
 def means_and_comparisons(df, col_name, gp, weighted_total):
@@ -232,6 +235,15 @@ def means_and_comparisons(df, col_name, gp, weighted_total):
     return diffs
 
 
+def add_weighted_summation(df):
+    sums = defaultdict(lambda: 0)
+
+    for col in [x for x in df.columns.tolist() if x in STATS_COLUMNS[:-1]]:
+        sums[col] = (df[col] * df['s006']).sum()
+
+    return pd.Series(sums, name='sums')
+
+
 def results(c):
     outputs = [getattr(c, col) for col in STATS_COLUMNS]
     return DataFrame(data=np.column_stack(outputs), columns=STATS_COLUMNS)
@@ -240,14 +252,16 @@ def results(c):
 def create_distribution_table(calc, groupby):
     res = results(calc)
     if groupby == "weighted_deciles":
-        gp = groupby_weighted_decile(res)
+        gp, sums = groupby_weighted_decile(res)
     elif groupby == "agi_bins":
-        gp = groupby_income_bins(res)
+        gp, sums = groupby_income_bins(res)
     else:
         err = "groupby must be either 'weighted_deciles' or 'agi_bins'"
         raise ValueError(err)
 
-    return gp[TABLE_COLUMNS].mean()
+    gp_mean = gp[TABLE_COLUMNS].mean()
+
+    return gp_mean.append(sums)
 
 def create_difference_table(calc1, calc2, groupby):
     res1 = results(calc1)
