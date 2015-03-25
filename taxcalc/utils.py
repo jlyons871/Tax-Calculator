@@ -41,6 +41,7 @@ def expand_1D(x, inflate, inflation_rates, num_years):
         else:
             ans = np.zeros(num_years, dtype='f8')
             ans[:len(x)] = x
+            ans[:len(x)] = x
             if inflate:
                 extra = []
                 cur = x[-1]
@@ -181,7 +182,7 @@ def groupby_weighted_decile(df):
     decile_bins = list(range(1, 11))
     df['wdecs'] = pd.cut(df['cumsum_weights'], bins, labels)
 
-    return df.groupby('wdecs'), add_weighted_summation(df)
+    return df.groupby('wdecs'), get_weighted_summation(df)
 
 
 def groupby_income_bins(df, bins=None, right=True):
@@ -207,7 +208,7 @@ def groupby_income_bins(df, bins=None, right=True):
     # Groupby c00100 bins
     df['bins'] = pd.cut(df['c00100'], bins, right=right)
 
-    return df.groupby('bins'), add_weighted_summation(df)
+    return df.groupby('bins'), get_weighted_summation(df)
 
 
 def means_and_comparisons(df, col_name, gp, weighted_total):
@@ -235,7 +236,7 @@ def means_and_comparisons(df, col_name, gp, weighted_total):
     return diffs
 
 
-def add_weighted_summation(df):
+def get_weighted_summation(df):
     sums = defaultdict(lambda: 0)
 
     for col in [x for x in df.columns.tolist() if x in STATS_COLUMNS[:-1]]:
